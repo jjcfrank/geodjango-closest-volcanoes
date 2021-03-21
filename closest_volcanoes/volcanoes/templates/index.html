@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Closest Volcanoes</title>
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+   integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+   crossorigin=""/>
+
+        <!-- Leaflet JS -->
+        <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"
+   integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg=="
+   crossorigin=""></script>
+
+        <!-- Set map height -->
+        <style>
+            #mapid { height: 500px; }
+        </style>
+
+    </head>
+<body>
+
+    <!-- map div -->
+    <div id="mapid"></div>
+    <!-- map js  -->
+    <script>
+
+        if ('geolocation' in navigator) {
+            console.log('geolocation available');
+            navigator.geolocation.getCurrentPosition(position => {
+                lat = position.coords.latitude;
+                lon = position.coords.longitude;
+                console.log(lat, lon);
+
+                var map = L.map('mapid').setView([lat, lon], 3);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup('You are here!')
+                    .openPopup();
+
+                {% for volcanoe in volcanoes %}
+                var circle = L.circle([{{ volcanoe.location.y }}, {{ volcanoe.location.x }}], {
+                    color: '#FF6666',
+                    fillColor: 'black',
+                    fillOpacity: 0.5,
+                    weight: 10,
+                    radius: 10000
+                }).addTo(map);
+                
+                circle.bindPopup("<ul><li>Name: {{ volcanoe.name }}</li><li>Country: {{ volcanoe.country }}</li><li>Elevation: {{ volcanoe.elevation }}</li>");
+                
+
+
+                map.on('zoomend', function() {
+                    var currentZoom = map.getZoom();
+                    circle.setRadius(currentZoom);
+                });
+
+                var latlon = [
+                    [{{ volcanoe.location.y }}, {{ volcanoe.location.x }}],
+                    [lat, lon]
+                ]
+                var polyline = L.polyline(latlon, {color: 'red', weight: 1, opacity: 1, dashArray: '5,5', lineJoin: 'round'}).addTo(map);
+
+                {% endfor %}
+
+            });
+        } else {
+            console.log('geolocation not available');
+        }
+
+
+
+    </script>
+    <div class=style>
+        <h3>Closest volcanoes to you:</h3>
+        {% if volcanoes %}
+        <ul>{% for volcanoe in volcanoes %}
+            <li><b>{{ volcanoe.name }}</b> ({{volcanoe.elevation}}m. height) is in {{ volcanoe.country }} and is only {{volcanoe.distance}} away from you.</li>
+        {% endfor %}
+        </ul>
+        {% endif %}'
+    </div>
+
+</body>
+</html>

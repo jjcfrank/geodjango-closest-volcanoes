@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% block content %}
+
+
+<h1>Closest Volcanoes</h1>
+{% if volcanoes %}
+<ul>
+{% for volcanoe in volcanoes %}
+    <li>
+    {{ volcanoe.name }}: {{volcanoe.distance}}
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% endblock content %}
